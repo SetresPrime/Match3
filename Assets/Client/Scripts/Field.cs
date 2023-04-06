@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -16,29 +17,83 @@ public class Field : MonoBehaviour
     [SerializeField]
     private RectTransform rt;
 
-    private Cell[,] cells;
-    private Candy[,] candies;
+    [SerializeField][HideInInspector] private Cell[,] cells;
+    [SerializeField][HideInInspector] private Candy[,] candies;
+
     public Color[] color;
 
     [ContextMenu ("Activate")]
     private void Awake()
-    { 
+    {
+        ClearField();
+
         if (cells == null) 
-           CreatField();
+           CreateField();
         if (candies == null)
-            CreatCandy();
+           SpawnCandys();
+
+        SetDirty();
     }
+
     [ContextMenu("Reset")]
     private void ResetCandy()
     {
+        if (cells == null || candies == null)
+            return;
+
         for(int x = 0; x < FieldSizeX; x++)
-            for(int y = 0; y < FieldSizeY; y++)
-                candies[x, y].SetValue(x, y, color[Random.Range(0, color.Length)]);
+        {
+            for (int y = 0; y < FieldSizeY; y++)
+            {
+                if (candies[x, y])
+                {
+                    candies[x, y].SetValue(x, y, color[Random.Range(0, color.Length)]);
+                }
+            }
+        }
+
+        SetDirty();
     }
-    private void CreatField()
+
+    [ContextMenu("Clear Field")]
+    private void ClearField()
+    {
+        if (cells == null || candies == null)
+        {
+            var childrens = transform.GetComponentsInChildren<Transform>();
+
+            foreach (var item in childrens)
+            {
+                if (item != transform)
+                    DestroyImmediate(item.gameObject);
+            }
+
+            return;
+        }
+
+        for (int x = 0; x < FieldSizeX; x++)
+        {
+            for (int y = 0; y < FieldSizeY; y++)
+            {
+                if (cells[x, y])
+                    DestroyImmediate(cells[x, y].gameObject);
+
+                if (candies[x, y])
+                    DestroyImmediate(candies[x,y].gameObject);
+            }
+        }
+
+        cells = null;
+        candies = null;
+        SetDirty();
+    }
+
+    private void CreateField()
     {
         cells = new Cell[FieldSizeX,FieldSizeY];
+
         for (int x = 0;x < FieldSizeX;x++)
+        {
             for (int y = 0;y < FieldSizeY; y++)
             {
                 var cell = Instantiate(cellPref, transform, false);           
@@ -47,20 +102,26 @@ public class Field : MonoBehaviour
                 cell.SetValue(x, y);
 
             }
+        }
     }
-    private void CreatCandy()
+
+    private void SpawnCandys()
     {
         candies = new Candy[FieldSizeX, FieldSizeY];
+
         for (int x = 0; x < FieldSizeX; x++)
+        {
             for (int y = 0; y < FieldSizeY; y++)
             {
                 var candy = Instantiate(candyPref, transform, false);
                 candy.transform.localPosition = Position(x, y);
                 candies[x, y] = candy;
                 candy.SetValue(x, y, color[Random.Range(0, color.Length)]);
-            }  
+            }
+        }
     }
-    Vector2 Position(int x, int y)
+
+    private Vector2 Position(int x, int y)
     {
         float fieldWidth = FieldSizeX * (CellSize + Spacing) + Spacing;
         float fieldHight = FieldSizeY * (CellSize + Spacing) + Spacing;
@@ -73,5 +134,10 @@ public class Field : MonoBehaviour
             rt.sizeDelta = new Vector2(fieldWidth, fieldHight);
 
         return position;        
+    }
+
+    private void SetDirty()
+    {
+        EditorUtility.SetDirty(this);
     }
 }
