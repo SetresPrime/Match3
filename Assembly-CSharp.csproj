@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{9B23071F-621B-B18B-DC61-0EF097576493}</ProjectGuid>
+    <ProjectGuid>{B6F049EB-439F-80BB-E5E4-CA562DF38555}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Assets\Client\Scripts\Field.cs" />
     <Compile Include="Assets\Client\Scripts\Candy.cs" />
+    <Compile Include="Assets\Client\Scripts\CandyAnimation.cs" />
     <Compile Include="Assets\Client\Scripts\Cell.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -276,6 +277,9 @@
     </Reference>
     <Reference Include="UnityEditor.UnityConnectModule">
       <HintPath>D:\Unity\2020.3.46f1\Editor\Data\Managed\UnityEngine\UnityEditor.UnityConnectModule.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween">
+      <HintPath>Assets\Plugins\Demigiant\DOTween\DOTween.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>D:\Unity\2020.3.46f1\Editor\Data\NetStandard\ref\2.0.0\netstandard.dll</HintPath>
@@ -664,8 +668,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.2D.Sprite.Editor.csproj">
-      <Project>{19FE26D7-8969-B087-DA80-E7C8E9D21843}</Project>
+      <Project>{899687E2-A137-F277-1EB1-91D3B49D5529}</Project>
       <Name>Unity.2D.Sprite.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="DOTween.Modules.csproj">
+      <Project>{FDC35B84-9A85-0778-D61A-C971A770695D}</Project>
+      <Name>DOTween.Modules</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
