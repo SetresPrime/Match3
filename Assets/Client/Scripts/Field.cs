@@ -69,7 +69,6 @@ public class Field : MonoBehaviour
 
         SetDirty();
     }
-
     [ContextMenu("Reset")]
     private void ResetCandy()
     {
