@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.39215687, g: 0, b: 1, a: 1}
+  m_Color: {r: 0.39215687, g: 0, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -89,8 +89,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28610e8dc8db77841919bcf59e1a5740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  colorNum: 0
+  ColorNum: 0
   image: {fileID: 4865970062595155333}
+  animationPref: {fileID: 8453517616531346602, guid: c8daa8513c1677d42b61d7db34a45975, type: 3}
 --- !u!114 &7353164476981143083
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,7 +138,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 4852661831318865545}
         m_TargetAssemblyTypeName: Candy, Assembly-CSharp
-        m_MethodName: Switch
+        m_MethodName: Fall
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

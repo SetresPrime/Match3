@@ -1,235 +1,137 @@
 using UnityEditor;
 using UnityEngine;
-using DG.Tweening;
 using Random = UnityEngine.Random;
 using System.Threading;
 using System.Collections;
+using UnityEditor.PackageManager;
 
 public class Field : MonoBehaviour
 {
     public static Field Instance;
 
-    public float CellSize;
-    public float Spacing;
-    public int FieldSizeX;
+    private bool isStart;
+
     public int FieldSizeY;
+    public int FieldSizeX;
+
+    [SerializeField]
+    private float CellSize;
+    [SerializeField]
+    private float Spacing;
 
     [SerializeField]
     private Cell cellPref;
     [SerializeField]
     private Candy candyPref;
     [SerializeField]
-    private CandyAnimation animationPref;
-    [SerializeField]
     private RectTransform rt;
+
 
     [HideInInspector] public Cell[,] cells;
     [HideInInspector] public Candy[,] candies;
 
     public Color[] color;
 
-    [ContextMenu("Activate")]
+
     private void Start()
     {
         if (Instance == null)
             Instance = this;
-        DOTween.Init();
 
-        ClearField();
-
-        if (cells == null)
-            CreateField();
-        if (candies == null)
-            SpawnCandys();
-    }
-
-    public void CandyFall(int x, int y)
-    {
-        Instantiate(animationPref, transform, false).Fall(candies[x, y + 1], candies[x, y]);
-    }
-    public void NewCandyAnim(Candy candy)
-    {
-        Instantiate(animationPref, transform, false).NewCandyAnim(candy);
-    }
-
-    [SerializeField][HideInInspector] private Cell[,] cells;
-    [SerializeField][HideInInspector] private Candy[,] candies;
-
-    public Color[] color;
-
-    [ContextMenu ("Activate")]
-    private void Awake()
-    {
-        ClearField();
-
-        if (cells == null) 
-           CreateField();
-        if (candies == null)
-           SpawnCandys();
-
-        SetDirty();
+        if (cells == null || candies == null)
+        {
+            isStart = true;
+            CreatField();
+        }        
     }
     [ContextMenu("Reset")]
-    private void ResetCandy()
+    private void ResetCandies()
     {
         if (cells == null || candies == null)
             return;
 
-        for(int x = 0; x < FieldSizeX; x++)
+        for (int y = 0; y < FieldSizeY; y++)
         {
-            for (int y = 0; y < FieldSizeY; y++)
+            for(int x = 0; x < FieldSizeX; x++)
             {
-                if (candies[x, y])
-                {
-                    candies[x, y].SetValue(x, y, color[Random.Range(0, color.Length)]);
-                }
-            }
-        }
-
-        SetDirty();
-    }
-
-    [ContextMenu("Clear Field")]
-    private void ClearField()
-    {
-        if (cells == null || candies == null)
-        {
-            var childrens = transform.GetComponentsInChildren<Transform>();
-
-            foreach (var item in childrens)
-            {
-                if (item != transform)
-                    DestroyImmediate(item.gameObject);
-            }
-
-            return;
-        }
-
-        for (int x = 0; x < FieldSizeX; x++)
-        {
-            for (int y = 0; y < FieldSizeY; y++)
-            {
-                if (cells[x, y])
-                    DestroyImmediate(cells[x, y].gameObject);
-
-                if (candies[x, y])
-                    DestroyImmediate(candies[x,y].gameObject);
-            }
-        }
-
-        cells = null;
-        candies = null;
-        SetDirty();
-    }
-
-    private void CreateField()
-    {
-        cells = new Cell[FieldSizeX,FieldSizeY];
-
-        for (int x = 0;x < FieldSizeX;x++)
-        {
-            for (int y = 0;y < FieldSizeY; y++)
-            {
-                var cell = Instantiate(cellPref, transform, false);           
-                cell.transform.localPosition = Position(x, y);
-                cells[x, y] = cell;
-                cell.SetValue(x, y);
-
-            }
-        }
-    }
-
-    private void SpawnCandys()
-    {
-        candies = new Candy[FieldSizeX, FieldSizeY];
-
-        for (int x = 0; x < FieldSizeX; x++)
-        {
-            for (int y = 0; y < FieldSizeY; y++)
-            {
+            
                 if (candies[x, y])
                 {
                     candies[x, y].SetValue(x, y, Random.Range(1, color.Length));
                 }
-                var candy = Instantiate(candyPref, transform, false);
-                candy.transform.localPosition = Position(x, y);
-                candies[x, y] = candy;
-                candy.SetValue(x, y, color[Random.Range(0, color.Length)]);
             }
         }
     }
-
-    [ContextMenu("Clear Field")]
     private void ClearField()
     {
-        if (cells == null || candies == null)
+        var childrens = transform.GetComponentsInChildren<Transform>();
+        foreach (var item in childrens)
         {
-            var childrens = transform.GetComponentsInChildren<Transform>();
-
-            foreach (var item in childrens)
-            {
-                if (item != transform)
-                    DestroyImmediate(item.gameObject);
-            }
-
-            return;
+            if (item != transform)
+            Destroy(item.gameObject);
         }
-
-        for (int x = 0; x < FieldSizeX; x++)
+    }
+    private bool FindField(int x = 0, int y = 0)
+    {
+        var oldCandy = transform.GetComponentsInChildren<Candy>();
+        foreach (var item in oldCandy)
         {
-            for (int y = 0; y < FieldSizeY; y++)
-            {
-                if (cells[x, y])
-                    DestroyImmediate(cells[x, y].gameObject);
-
-                if (candies[x, y])
-                    DestroyImmediate(candies[x, y].gameObject);
-            }
+            candies[x, y] = item;
+            x = x != FieldSizeX - 1 ? x + 1 : 0;
+            y = x == 0 ? y + 1 : y;
         }
-
-        cells = null;
-        candies = null;
+        var oldCell = transform.GetComponentsInChildren<Cell>();
+        x= 0; y= 0;
+        foreach (var item in oldCell)
+        {
+            cells[x, y] = item;
+            x = x != FieldSizeX - 1 ? x + 1 : 0;
+            y = x == 0 ? y + 1 : y;
+        }
+        return cells[0,0] != transform && candies[0,0] != transform;
     }
 
-    private void CreateField()
+    [ContextMenu("Activate")]
+    private void CreatField()
     {
         cells = new Cell[FieldSizeX, FieldSizeY];
-
-        for (int x = 0; x < FieldSizeX; x++)
-        {
-            for (int y = 0; y < FieldSizeY; y++)
-            {
-                var cell = Instantiate(cellPref, transform, false);
-                cell.transform.localPosition = Position(x, y, true);
-                cells[x, y] = cell;
-                cell.SetValue(x, y);
-            }
-        }
-    }
-    private void SpawnCandys()
-    {
         candies = new Candy[FieldSizeX, FieldSizeY];
 
+        ClearField();
+
+        //if (FindField())
+            //return;
+        Position(0, 0, true);
         for (int y = 0; y < FieldSizeY; y++)
         {
             for (int x = 0; x < FieldSizeX; x++)
             {
-                StartCoroutine(NewCandy(x, y));
+                SpawnCell(x, y);
+                StartCoroutine(SpawnCandy(x, y));
             }
         }
     }
-    private IEnumerator NewCandy(int x, int y)
+    private void SpawnCell(int x, int y)
+    {
+         var cell = Instantiate(cellPref, transform, false);
+         cell.transform.localPosition = Position(x, y, false);
+         cells[x, y] = cell;
+         cell.SetValue(x, y);
+    }
+    private IEnumerator SpawnCandy(int x, int y)
     {
         var candy = Instantiate(candyPref, transform, false);
         candy.transform.localPosition = Position(x, y, false);
         candies[x, y] = candy;
-        candy.SetValue(x, y, 0);
+        candy.SetValue(x, y, Random.Range(1, color.Length));
+        y  = isStart ? y : 0;
         yield return new WaitForSeconds(y / 2f);
-        NewCandyAnim(candy);
+        if (isStart)
+           candy.SpawnAnim();
+        else 
+            candy.image.color = color[candy.ColorNum];
     }
     public Vector2 Position(int x, int y, bool UpdateField)
-
-    private Vector2 Position(int x, int y)
     {
         float fieldWidth = FieldSizeX * (CellSize + Spacing) + Spacing;
         float fieldHight = FieldSizeY * (CellSize + Spacing) + Spacing;
@@ -242,10 +144,5 @@ public class Field : MonoBehaviour
             rt.sizeDelta = new Vector2(fieldWidth, fieldHight);
 
         return position;
-    }
-
-    private void SetDirty()
-    {
-        EditorUtility.SetDirty(this);
     }
 }

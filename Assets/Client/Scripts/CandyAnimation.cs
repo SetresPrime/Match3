@@ -13,7 +13,7 @@ public class CandyAnimation : MonoBehaviour
     public Image image;
 
     Sequence sequence;
-    public void Fall(Candy from, Candy to)
+    public void FallAnim(Candy from, Candy to)
     {
         to.ColorNum = from.ColorNum;    
         
@@ -35,11 +35,9 @@ public class CandyAnimation : MonoBehaviour
     public void NewCandyAnim(Candy candy)
     {
         candy.image.color = Field.Instance.color[0];
-        candy.ColorNum = Random.Range(1, Field.Instance.color.Length);
-
         image.color = Field.Instance.color[candy.ColorNum];
 
-        transform.position = new Vector3(0, 1.444257f, 0) + candy.transform.position;
+        transform.position = new Vector3(0, 1.444f, 0) + candy.transform.position;
         transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
         sequence = DOTween.Sequence();

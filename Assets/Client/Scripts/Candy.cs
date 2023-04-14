@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
 public class Candy : MonoBehaviour
 {
@@ -11,24 +12,35 @@ public class Candy : MonoBehaviour
     public Image image;
 
     CandyAnimation candyAnimation;
+
+    [SerializeField]
+    private CandyAnimation animationPref;
     public void SetValue(int x, int y, int colorNum)
     {
         X = x;
         Y = y;
         ColorNum = colorNum;
-        UpdateCandyColor();
     }
-    private void Switch()
+    public void trans()
     {
-        if (Y + 1!= Field.Instance.FieldSizeY)
+        gameObject.transform.position = new Vector3(0,0, 0);
+    }
+    public void SpawnAnim()
+    {
+        Instantiate(animationPref, Field.Instance.transform, false).NewCandyAnim(this);
+    }
+    public void Fall()
+    {
+        if (Y + 1 != Field.Instance.FieldSizeY)
         {
             ClearColor();
-            Field.Instance.CandyFall(X, Y);
-            Field.Instance.candies[X, Y + 1].Switch();
+            Instantiate(animationPref, Field.Instance.transform, false).FallAnim(Field.Instance.candies[X, Y + 1], this);
+            Field.Instance.candies[X, Y + 1].Fall();
         }
-        else 
+        else
         {
-            Field.Instance.NewCandyAnim(this);
+            ColorNum = Random.Range(1, Field.Instance.color.Length);
+            SpawnAnim();
         }
     }
     public void UpdateCandyColor()
