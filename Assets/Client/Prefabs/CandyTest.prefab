@@ -30,6 +30,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 0}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -89,8 +90,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28610e8dc8db77841919bcf59e1a5740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ColorNum: 0
   image: {fileID: 4865970062595155333}
+  button: {fileID: 7353164476981143083}
   animationPref: {fileID: 8453517616531346602, guid: c8daa8513c1677d42b61d7db34a45975, type: 3}
 --- !u!114 &7353164476981143083
 MonoBehaviour:
@@ -135,16 +136,4 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4865970062595155333}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 4852661831318865545}
-        m_TargetAssemblyTypeName: Candy, Assembly-CSharp
-        m_MethodName: Fall
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []

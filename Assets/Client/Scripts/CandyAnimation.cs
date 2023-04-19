@@ -1,62 +1,28 @@
 using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
 
-public class CandyAnimation : MonoBehaviour
+public class CandyAnimation
 {
-    public int X { get; private set; }
-    public int Y { get; private set; }
+    private const float CANDY_SPAWN_TIME = 0.1f;
+    private const float CANDY_FALL_TIME = 0.5f;
 
-    private float newCandy = 0.1f;
-    private float moveTime = 0.5f;
-
-    public Image image;
-
-    Sequence sequence;
-    public void FallAnim(Candy from, Candy to)
+    public static void FallAnim(Candy candy, Vector3 targetPosition)
     {
-        to.ColorNum = from.ColorNum;    
-        
-        image.color = Field.Instance.color[from.ColorNum];
-        transform.position = from.transform.position;
-
-        sequence = DOTween.Sequence();
-
-        from.ClearColor();
-
-        sequence.Append(transform.DOMove(to.transform.position, moveTime));
-
-        sequence.AppendCallback(() =>
-        {
-            to.UpdateCandyColor();
-            Destroy();
-        });
+        candy.transform.DOMove(targetPosition, CANDY_FALL_TIME);
     }
-    public void NewCandyAnim(Candy candy)
+
+    public static void SpawnCandy(Candy candy)
     {
-        candy.image.color = Field.Instance.color[0];
-        image.color = Field.Instance.color[candy.ColorNum];
+        var targetPosition = candy.transform.position;
 
-        transform.position = new Vector3(0, 1.444f, 0) + candy.transform.position;
-        transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        candy.transform.position += new Vector3(0, 1.444f, 0);
+        candy.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
-        sequence = DOTween.Sequence();
+        var sequence = DOTween.Sequence();
 
-        sequence.Append(transform.DOScale(1.2f, newCandy));
-        sequence.AppendInterval(0.05f);
-        sequence.Append(transform.DOScale(1.0f, newCandy));
-
-        sequence.Append(transform.DOMove(candy.transform.position, 0.3f));
-
-        sequence.AppendCallback(() =>
-        {
-            candy.UpdateCandyColor();
-            Destroy();
-        });
-    }
-    public void Destroy()
-    {
-        sequence.Kill();
-        Destroy(gameObject);        
+        sequence.Append(candy.transform.DOScale(1.2f, CANDY_SPAWN_TIME))
+                .AppendInterval(0.05f)
+                .Append(candy.transform.DOScale(1.0f, CANDY_SPAWN_TIME))
+                .Append(candy.transform.DOMove(targetPosition, 0.3f));
     }
 }

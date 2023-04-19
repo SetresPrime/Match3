@@ -1,63 +1,42 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR;
 
 public class Candy : MonoBehaviour
 {
+    public Action<Candy> OnClick;
+
+    [SerializeField] private Image image;
+    [SerializeField] private Button button;
+
+    public Color Color => image.color;
+
     public int X { get; private set; }
     public int Y { get; private set; }
 
-    public int ColorNum;
+    private void Awake()
+    {
+        button?.onClick.AddListener(() => OnClick.Invoke(this));
+    }
 
-    public Image image;
-
-    CandyAnimation candyAnimation;
-
-    [SerializeField]
-    private CandyAnimation animationPref;
-    public void SetValue(int x, int y, int colorNum)
+    public void SetValue(int x, int y)
     {
         X = x;
         Y = y;
-        ColorNum = colorNum;
     }
-    public void trans()
+
+    public void SpawnAnim(Field field)
     {
-        gameObject.transform.position = new Vector3(0,0, 0);
+        CandyAnimation.SpawnCandy(this);
     }
-    public void SpawnAnim()
+
+    public void Fall(Vector3 targetPosition)
     {
-        Instantiate(animationPref, Field.Instance.transform, false).NewCandyAnim(this);
+        CandyAnimation.FallAnim(this, targetPosition);
     }
-    public void Fall()
+
+    public void SetColor(Color color)
     {
-        if (Y + 1 != Field.Instance.FieldSizeY)
-        {
-            ClearColor();
-            Instantiate(animationPref, Field.Instance.transform, false).FallAnim(Field.Instance.candies[X, Y + 1], this);
-            Field.Instance.candies[X, Y + 1].Fall();
-        }
-        else
-        {
-            ColorNum = Random.Range(1, Field.Instance.color.Length);
-            SpawnAnim();
-        }
-    }
-    public void UpdateCandyColor()
-    {
-        image.color = Field.Instance.color[ColorNum];
-    }
-    public void ClearColor()
-    {
-        image.color = Field.Instance.color[0];        
-    }
-    public void SetAnimation(CandyAnimation candyAnim)
-    {
-        candyAnimation = candyAnim;
-    }
-    public void CancleAnimation()
-    {
-        if(candyAnimation != null)
-            candyAnimation.Destroy();
+        image.color = color;
     }
 }

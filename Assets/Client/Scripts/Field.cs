@@ -1,15 +1,12 @@
-using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using System.Threading;
 using System.Collections;
-using UnityEditor.PackageManager;
+using System.Collections.Generic;
+using System;
 
 public class Field : MonoBehaviour
 {
-    public static Field Instance;
-
-    private bool isStart;
+    private const float CANDY_SPAWN_ANIMATION_DELAY = 0.2f;
 
     public int FieldSizeY;
     public int FieldSizeX;
@@ -32,18 +29,16 @@ public class Field : MonoBehaviour
 
     public Color[] color;
 
+    private List<int> _fallingColumns = new List<int>();
 
     private void Start()
     {
-        if (Instance == null)
-            Instance = this;
-
         if (cells == null || candies == null)
         {
-            isStart = true;
             CreatField();
         }        
     }
+
     [ContextMenu("Reset")]
     private void ResetCandies()
     {
@@ -54,41 +49,33 @@ public class Field : MonoBehaviour
         {
             for(int x = 0; x < FieldSizeX; x++)
             {
-            
-                if (candies[x, y])
+                var candy = candies[x, y];
+                if (candy)
                 {
-                    candies[x, y].SetValue(x, y, Random.Range(1, color.Length));
+                    candy.SetValue(x, y);
+                    candy.SetColor(color[Random.Range(1, color.Length)]);
+                    candy.OnClick += OnClickCandy;
                 }
             }
         }
     }
+
     private void ClearField()
     {
-        var childrens = transform.GetComponentsInChildren<Transform>();
-        foreach (var item in childrens)
+        var cells = transform.GetComponentsInChildren<Cell>();
+        var candies = transform.GetComponentsInChildren<Candy>();
+
+        for (int i = 0; i < cells.Length; i++)
         {
-            if (item != transform)
-            Destroy(item.gameObject);
+            var cell = cells[i];
+            Destroy(cell.gameObject);
         }
-    }
-    private bool FindField(int x = 0, int y = 0)
-    {
-        var oldCandy = transform.GetComponentsInChildren<Candy>();
-        foreach (var item in oldCandy)
+
+        for (int i = 0; i < candies.Length; i++)
         {
-            candies[x, y] = item;
-            x = x != FieldSizeX - 1 ? x + 1 : 0;
-            y = x == 0 ? y + 1 : y;
+            var candy = candies[i];
+            Destroy(candy.gameObject);
         }
-        var oldCell = transform.GetComponentsInChildren<Cell>();
-        x= 0; y= 0;
-        foreach (var item in oldCell)
-        {
-            cells[x, y] = item;
-            x = x != FieldSizeX - 1 ? x + 1 : 0;
-            y = x == 0 ? y + 1 : y;
-        }
-        return cells[0,0] != transform && candies[0,0] != transform;
     }
 
     [ContextMenu("Activate")]
@@ -98,19 +85,24 @@ public class Field : MonoBehaviour
         candies = new Candy[FieldSizeX, FieldSizeY];
 
         ClearField();
-
-        //if (FindField())
-            //return;
         Position(0, 0, true);
-        for (int y = 0; y < FieldSizeY; y++)
+
+        SpawnCells(FieldSizeX, FieldSizeY);
+        StartCoroutine(SpawnCandiesRoutine(FieldSizeX, FieldSizeY));
+    }
+
+    private void SpawnCells(int width, int height)
+    {
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < FieldSizeX; x++)
+            for (int x = 0; x < width; x++)
             {
                 SpawnCell(x, y);
-                StartCoroutine(SpawnCandy(x, y));
             }
         }
+        _fallingColumns.Clear();
     }
+
     private void SpawnCell(int x, int y)
     {
          var cell = Instantiate(cellPref, transform, false);
@@ -118,19 +110,51 @@ public class Field : MonoBehaviour
          cells[x, y] = cell;
          cell.SetValue(x, y);
     }
-    private IEnumerator SpawnCandy(int x, int y)
+
+    private IEnumerator SpawnCandiesRoutine(int width, int height)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            yield return new WaitForSeconds(CANDY_SPAWN_ANIMATION_DELAY);
+
+            for (int x = 0; x < width; x++)
+            {
+                SpawnCandy(x, y);
+            }
+        }
+        yield return new WaitForSeconds(CANDY_SPAWN_ANIMATION_DELAY);
+        _fallingColumns.Clear();
+    }
+
+    private IEnumerator SpawnCandyRoutine(int x, int y, bool isUseDelay = true, Action<Candy> callback = null)
+    {
+        if (isUseDelay)
+            yield return new WaitForSeconds(CANDY_SPAWN_ANIMATION_DELAY);
+
+        var candy = SpawnCandy(x, y);
+
+        yield return new WaitForSeconds(CANDY_SPAWN_ANIMATION_DELAY);
+        callback?.Invoke(candy);
+    }
+
+    private Candy SpawnCandy(int x, int y)
     {
         var candy = Instantiate(candyPref, transform, false);
+
         candy.transform.localPosition = Position(x, y, false);
         candies[x, y] = candy;
-        candy.SetValue(x, y, Random.Range(1, color.Length));
-        y  = isStart ? y : 0;
-        yield return new WaitForSeconds(y / 2f);
-        if (isStart)
-           candy.SpawnAnim();
-        else 
-            candy.image.color = color[candy.ColorNum];
+
+        candy.SetValue(x, y);
+        candy.SetColor(color[Random.Range(1, color.Length)]);
+        candy.SpawnAnim(this);
+        candy.OnClick += OnClickCandy;
+
+        if (y == 0)
+            _fallingColumns.Add(x);
+
+        return candy;
     }
+
     public Vector2 Position(int x, int y, bool UpdateField)
     {
         float fieldWidth = FieldSizeX * (CellSize + Spacing) + Spacing;
@@ -144,5 +168,30 @@ public class Field : MonoBehaviour
             rt.sizeDelta = new Vector2(fieldWidth, fieldHight);
 
         return position;
+    }
+
+    private void OnClickCandy(Candy candy)
+    {
+        if (candy == null || _fallingColumns.Contains(candy.X)) return;
+
+        _fallingColumns.Add(candy.X);
+
+        for (int y = candy.Y; y < FieldSizeY - 1; y++)
+        {
+            var currentCandy = candies[candy.X, y];
+            var candyOverCurrent = candies[candy.X, y + 1];
+
+            candies[candy.X, y] = candyOverCurrent;
+            candyOverCurrent.SetValue(candy.X, y);
+            candyOverCurrent.Fall(currentCandy.transform.position);
+
+            Debug.Log($"FALL   X: {candyOverCurrent.X}, Y: {candyOverCurrent.Y}");
+        }
+
+        Debug.Log($"SPAWN   X: {candy.X}, Y: {FieldSizeY - 1}");
+        StartCoroutine(SpawnCandyRoutine(candy.X,FieldSizeY - 1, callback: (spawnedCandy) => _fallingColumns.Remove(spawnedCandy.X)));
+
+        candy.OnClick -= OnClickCandy;
+        Destroy(candy.gameObject);
     }
 }
