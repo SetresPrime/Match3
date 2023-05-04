@@ -4,37 +4,28 @@ using UnityEngine.UI;
 
 public class Candy : MonoBehaviour
 {
-    public Action<Candy> OnClick;
 
     [SerializeField] private Image image;
-    [SerializeField] private Button button;
-
+    public Action<Candy> OnSelected;
     public Color Color => image.color;
 
     public int X { get; private set; }
     public int Y { get; private set; }
-
-    private void Awake()
-    {
-        button?.onClick.AddListener(() => OnClick.Invoke(this));
-    }
-
-    public void SetValue(int x, int y)
+    public int color {get; private set; }
+    public void SetValue(int x, int y, int Color)
     {
         X = x;
         Y = y;
+        color = Color;
     }
-
-    public void SpawnAnim(Field field)
+    public void SelectCandy()
     {
-        CandyAnimation.SpawnCandy(this);
+        OnSelected.Invoke(this);
     }
-
-    public void Fall(Vector3 targetPosition)
+    public void Fall(Vector3 targetPosition, bool IsLast)
     {
-        CandyAnimation.FallAnim(this, targetPosition);
+        CandyAnimation.FallAnim(this, targetPosition, IsLast);
     }
-
     public void SetColor(Color color)
     {
         image.color = color;
